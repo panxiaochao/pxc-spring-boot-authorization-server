@@ -1,0 +1,37 @@
+# spring
+spring:
+  # 数据库
+  datasource:
+    url: jdbc:mysql://localhost:3306/oauth2?rewriteBatchedStatements=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowMultiQueries=true&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: root
+    password: root123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      idle-timeout: 60000
+      max-lifetime: 60000
+      connection-timeout: 30000
+      pool-name: Security-Oauth2-HikariPool
+  # self OAuth2
+  security:
+    oauth2:
+      self:
+        clientId: client_auth
+        clientSecret: 123456@
+        clientServer: client_server
+        accessTokenTimeToLive: 3600
+        refreshTokenTimeToLive: 7200
+        seed: pxc-security-oauth2-seed
+        password-encoder: MD5
+
+# mybatis-plus 配置
+mybatis-plus:
+  db-type: mysql
+  global-config:
+    banner: false
+  configuration:
+    map-underscore-to-camel-case: true
+    # 开发测试时使用
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

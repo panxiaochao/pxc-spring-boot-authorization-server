@@ -1,5 +1,6 @@
 package io.github.panxiaochao.authorization;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -19,7 +20,7 @@ import java.net.InetAddress;
  * @since 2023-07-17
  */
 @SpringBootApplication
-// @MapperScan("io.github.panxiaochao.authorization.infrastucture.**.mapper")
+@MapperScan("io.github.panxiaochao.authorization.infrastucture.**.mapper")
 public class ServerApplication {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ServerApplication.class);

@@ -13,18 +13,19 @@ spring:
       idle-timeout: 60000
       max-lifetime: 60000
       connection-timeout: 30000
-      pool-name: Security-Oauth2-HikariPool
-  # self OAuth2
-  security:
-    oauth2:
-      self:
-        clientId: client_auth
-        clientSecret: 123456@
-        clientServer: client_server
-        accessTokenTimeToLive: 3600
-        refreshTokenTimeToLive: 7200
-        seed: pxc-security-oauth2-seed
-        password-encoder: MD5
+      pool-name: authorization-hikaripool
+
+# auth server settings
+auth:
+  server:
+    clientId: client_auth
+    clientSecret: 123456@
+    clientServer: client_server
+    accessTokenTimeToLive: 3600
+    refreshTokenTimeToLive: 7200
+    seed: pxc-auth-server
+    password-encoder: MD5
+    plain-password: true
 
 # mybatis-plus 配置
 mybatis-plus:

@@ -15,7 +15,7 @@ import java.security.spec.EllipticCurve;
 
 /**
  * <p>
- * description: 密钥生成工具
+ * description: 密钥生成工具.
  * </p>
  *
  * @author Lypxc
@@ -26,8 +26,6 @@ public class KeyGeneratorUtil {
 	private static final String ALGORITHM_RSA = "RSA";
 
 	private static final String ALGORITHM_DSA = "DSA";
-
-	private static final String ALGORITHM_HMAC_SHA_1 = "HmacSHA1";
 
 	private static final String ALGORITHM_HMAC_SHA_256 = "HmacSHA256";
 

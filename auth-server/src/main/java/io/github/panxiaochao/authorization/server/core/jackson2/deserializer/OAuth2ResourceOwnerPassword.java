@@ -18,13 +18,13 @@ import java.util.Set;
 
 /**
  * <p>
+ * Standard data formats for OAuth2ResourceOwnerPassword token.
  * </p>
  *
  * @author Lypxc
  * @since 2023-07-17
  */
-public class OAuth2ResourceOwnerPasswordDeserializer
-		extends JsonDeserializer<OAuth2ResourceOwnerPasswordAuthenticationToken> {
+public class OAuth2ResourceOwnerPassword extends JsonDeserializer<OAuth2ResourceOwnerPasswordAuthenticationToken> {
 
 	private final TypeReference<List<GrantedAuthority>> GRANTED_AUTHORITY_LIST = new TypeReference<List<GrantedAuthority>>() {
 	};

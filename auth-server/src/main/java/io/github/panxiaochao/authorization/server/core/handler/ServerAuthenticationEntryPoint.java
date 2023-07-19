@@ -16,7 +16,7 @@ import java.io.PrintWriter;
 
 /**
  * <p>
- * 无效Token异常类重新，统一返回Json格式
+ * 无效Token异常类重新，统一返回Json格式.
  * </p>
  *
  * @author Lypxc

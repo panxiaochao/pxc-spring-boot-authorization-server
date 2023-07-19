@@ -2,6 +2,8 @@ package io.github.panxiaochao.authorization.infrastucture.user.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
  * @author pxc creator
  * @since 2022-02-15
  */
+@Getter
+@Setter
 public class SysUserAuths implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -53,68 +57,4 @@ public class SysUserAuths implements Serializable {
 	 * 登录标识失效时间
 	 */
 	private LocalDateTime expireTime;
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public Integer getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Integer userId) {
-		this.userId = userId;
-	}
-
-	public String getIdentityType() {
-		return identityType;
-	}
-
-	public void setIdentityType(String identityType) {
-		this.identityType = identityType;
-	}
-
-	public String getIdentifier() {
-		return identifier;
-	}
-
-	public void setIdentifier(String identifier) {
-		this.identifier = identifier;
-	}
-
-	public String getCredential() {
-		return credential;
-	}
-
-	public void setCredential(String credential) {
-		this.credential = credential;
-	}
-
-	public String getVerified() {
-		return verified;
-	}
-
-	public void setVerified(String verified) {
-		this.verified = verified;
-	}
-
-	public LocalDateTime getExpireTime() {
-		return expireTime;
-	}
-
-	public void setExpireTime(LocalDateTime expireTime) {
-		this.expireTime = expireTime;
-	}
-
-	@Override
-	public String toString() {
-		return "SysUserAuths{" + "id=" + id + ", userId=" + userId + ", identityType=" + identityType + ", identifier="
-				+ identifier + ", credential=" + credential + ", verified=" + verified + ", expireTime=" + expireTime
-				+ "}";
-	}
-
 }

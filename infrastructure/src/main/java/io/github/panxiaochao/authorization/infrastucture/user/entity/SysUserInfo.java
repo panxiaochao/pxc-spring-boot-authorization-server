@@ -1,6 +1,8 @@
 package io.github.panxiaochao.authorization.infrastucture.user.entity;
 
 import io.github.panxiaochao.authorization.infrastucture.role.entity.SysRoleInfo;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -12,6 +14,8 @@ import java.util.List;
  * @author pxc creator
  * @since 2022-02-15
  */
+@Getter
+@Setter
 public class SysUserInfo {
 
 	private Integer id;
@@ -60,85 +64,5 @@ public class SysUserInfo {
 	 * 角色集合
 	 */
 	private List<SysRoleInfo> roles;
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getRealName() {
-		return realName;
-	}
-
-	public void setRealName(String realName) {
-		this.realName = realName;
-	}
-
-	public String getNickName() {
-		return nickName;
-	}
-
-	public void setNickName(String nickName) {
-		this.nickName = nickName;
-	}
-
-	public String getAvatar() {
-		return avatar;
-	}
-
-	public void setAvatar(String avatar) {
-		this.avatar = avatar;
-	}
-
-	public String getSex() {
-		return sex;
-	}
-
-	public void setSex(String sex) {
-		this.sex = sex;
-	}
-
-	public String getMobile() {
-		return mobile;
-	}
-
-	public void setMobile(String mobile) {
-		this.mobile = mobile;
-	}
-
-	public String getSkins() {
-		return skins;
-	}
-
-	public void setSkins(String skins) {
-		this.skins = skins;
-	}
-
-	public Integer getOrgId() {
-		return orgId;
-	}
-
-	public void setOrgId(Integer orgId) {
-		this.orgId = orgId;
-	}
-
-	public String getOrgCode() {
-		return orgCode;
-	}
-
-	public void setOrgCode(String orgCode) {
-		this.orgCode = orgCode;
-	}
-
-	public List<SysRoleInfo> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(List<SysRoleInfo> roles) {
-		this.roles = roles;
-	}
 
 }

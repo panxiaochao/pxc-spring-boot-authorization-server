@@ -15,7 +15,7 @@ import java.io.PrintWriter;
 
 /**
  * <p>
- * 权限不足异常类重写
+ * 权限不足异常类重写.
  * </p>
  *
  * @author LyPxc

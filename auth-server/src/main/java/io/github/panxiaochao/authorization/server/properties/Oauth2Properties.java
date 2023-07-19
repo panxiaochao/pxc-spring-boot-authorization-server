@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * <p>
- * 自定义属性
+ * 自定义属性.
  * </p>
  *
  * @author Lypxc
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "oauth2.self", ignoreInvalidFields = true)
+@ConfigurationProperties(prefix = "auth.server", ignoreInvalidFields = true)
 @Component
 public class Oauth2Properties {
 
@@ -53,6 +53,11 @@ public class Oauth2Properties {
 	/**
 	 * seed
 	 */
-	private String seed = "pxc-oauth2-seed";
+	private String seed = "@123456$";
+
+	/**
+	 * 数据库加密是否是明文
+	 */
+	private boolean plainPassword;
 
 }

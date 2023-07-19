@@ -34,9 +34,9 @@ import java.security.Principal;
 import java.util.*;
 
 /**
- * {@code OAuth2ResourceOwnerPasswordAuthenticationProvider}
  * <p>
- * description: An AuthenticationProvider implementation for the OAuth 2.0 Password Grant.
+ * An AuthenticationProvider implementation for the OAuth 2.0 Password Grant.
+ * </p>
  *
  * @author Lypxc
  * @since 2022-12-14
@@ -72,10 +72,8 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 		else if (!registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.PASSWORD)) {
 			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.INVALID_GRANT, "The Invalid Grant.", null);
 		}
-		LOGGER.info("Retrieved registered client");
 		Authentication principal = authenticatePassword(requestAdditionalParameters, requestedScopes,
 				clientPrincipal.getDetails());
-		LOGGER.info("Retrieved Authentication principal success");
 		Set<String> authorizedScopes = Collections.emptySet();
 		if (!CollectionUtils.isEmpty(requestedScopes)) {
 			for (String requestedScope : requestedScopes) {
@@ -145,7 +143,6 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 		else {
 			authorizationBuilder.accessToken(accessToken);
 		}
-		LOGGER.info("Generated access token");
 		return accessToken;
 	}
 
@@ -161,7 +158,6 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 				OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR,
 						"The token generator failed to generate the refresh token.", ERROR_URI);
 			}
-			LOGGER.info("Generated refresh token");
 			oauth2RefreshToken = (OAuth2RefreshToken) generatedRefreshToken;
 			authorizationBuilder.refreshToken(oauth2RefreshToken);
 		}
@@ -174,11 +170,20 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 		String password = requestAdditionalParameters.get(OAuth2ParameterNames.PASSWORD).toString();
 		// requestAdditionalParameters.get(CusOAuth2ParameterNames.IDENTITY_TYPE).toString();
 		UserDetails userDetails = userDetailsService().loadUserByUsername(username);
-		if (userDetails == null) {
-			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR, "Bad Credentials: user is empty.", null);
+		// if (userDetails == null) {
+		// OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR, "Bad Credentials:
+		// user is empty.", null);
+		// }
+		boolean verified = false;
+		try {
+			verified = passwordEncoder().matches(password, userDetails.getPassword());
 		}
-		if (!passwordEncoder().matches(password, userDetails.getPassword())) {
-			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR, "password does not match.", null);
+		catch (Exception e) {
+			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR,
+					"password match is error: [" + e.getMessage() + "]", null);
+		}
+		if (!verified) {
+			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR, "password does not match", null);
 		}
 		OAuth2ResourceOwnerPasswordAuthenticationToken resourceOwnerPasswordAuthenticationToken = new OAuth2ResourceOwnerPasswordAuthenticationToken(
 				userDetails.getAuthorities(), AuthorizationGrantType.PASSWORD, userDetails, requestedScopes,

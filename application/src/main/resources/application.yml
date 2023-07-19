@@ -7,7 +7,7 @@ server:
 # spring
 spring:
   application:
-    name: security-oauth2-server
+    name: spring-boot-authorization-server
   main:
     allow-circular-references: true
     allow-bean-definition-overriding: true

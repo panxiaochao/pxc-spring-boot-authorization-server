@@ -1,8 +1,6 @@
 package io.github.panxiaochao.authorization.server.core.authorization.password;
 
 import io.github.panxiaochao.authorization.server.core.endpoint.OAuth2EndpointUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -16,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
- * {@code OAuth2ResourceOwnerPasswordAuthenticationConverter}
  * <p>
  * Attempts to extract an Access Token Request from {@link HttpServletRequest} for the
  * OAuth 2.0 Password Grant and then converts it to an
@@ -28,9 +25,6 @@ import java.util.*;
  * @since 2022-12-14
  */
 public final class OAuth2ResourceOwnerPasswordAuthenticationConverter implements AuthenticationConverter {
-
-	private static final Logger LOGGER = LoggerFactory
-		.getLogger(OAuth2ResourceOwnerPasswordAuthenticationConverter.class);
 
 	@Override
 	public Authentication convert(HttpServletRequest request) {
@@ -81,8 +75,6 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationConverter implements
 				additionalParameters.put(key, value.get(0));
 			}
 		});
-
-		LOGGER.info(">>> OAuth2ResourceOwnerPasswordAuthenticationConverter");
 
 		return new OAuth2ResourceOwnerPasswordAuthenticationToken(AuthorizationGrantType.PASSWORD, clientPrincipal,
 				requestedScopes, additionalParameters);

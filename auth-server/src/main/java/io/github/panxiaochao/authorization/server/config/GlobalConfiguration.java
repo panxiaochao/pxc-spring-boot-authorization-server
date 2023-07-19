@@ -12,16 +12,17 @@ import java.util.Objects;
 
 /**
  * <p>
+ * 全局 Bean 构造，包括 UserDetailsService, PasswordEncoder.
  * </p>
  *
  * @author Lypxc
  * @since 2023-07-18
  */
 @Configuration(proxyBeanMethods = false)
-public class PasswordEncoderConfiguration {
+public class GlobalConfiguration {
 
 	/**
-	 * 自定义 UserDetailsService
+	 * 自定义 UserDetailsService.
 	 */
 	@Bean
 	public UserDetailsService userDetailService() {
@@ -29,7 +30,7 @@ public class PasswordEncoderConfiguration {
 	}
 
 	/**
-	 * 自定义密码模式- MD5模式
+	 * 自定义密码模式 - 默认MD5模式.
 	 * @return PasswordEncoder
 	 */
 	@Bean

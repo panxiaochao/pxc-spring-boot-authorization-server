@@ -4,6 +4,7 @@ import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -16,6 +17,7 @@ import java.time.Duration;
 
 /**
  * <p>
+ * RegisteredClientConfiguration 客户端配置类.
  * </p>
  *
  * @author Lypxc
@@ -26,6 +28,9 @@ public class RegisteredClientConfiguration {
 
 	@Resource
 	private Oauth2Properties oauth2Properties;
+
+	@Resource
+	private PasswordEncoder passwordEncoder;
 
 	/**
 	 * （必需）负责注册的 Client 信息
@@ -39,6 +44,7 @@ public class RegisteredClientConfiguration {
 		// RegisteredClient registeredClient =
 		// registeredClientRepository.findByClientId(oauth2Properties.getClientId());
 		// if (Objects.isNull(registeredClient)) {
+		// // 初始化一个 是使用者
 		// registeredClient = createRegisteredClient();
 		// registeredClientRepository.save(registeredClient);
 		// }
@@ -57,9 +63,9 @@ public class RegisteredClientConfiguration {
 	 */
 	// private RegisteredClient createRegisteredClient() {
 	// return RegisteredClient.withId(UUID.randomUUID().toString())
-	// .clientId(selfProperties.getClientId())
-	// .clientSecret(passwordEncoder.encode(selfProperties.getClientSecret()))
-	// .clientName(selfProperties.getClientServer())
+	// .clientId(oauth2Properties.getClientId())
+	// .clientSecret(passwordEncoder.encode(oauth2Properties.getClientSecret()))
+	// .clientName(oauth2Properties.getClientServer())
 	// .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 	// .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
 	// .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)

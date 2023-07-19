@@ -6,6 +6,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -15,11 +16,13 @@ import java.util.Collections;
 
 /**
  * <p>
+ * SecurityConfiguration 配置类.
  * </p>
  *
  * @author Lypxc
  * @since 2023-07-17
  */
+@EnableWebSecurity
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
 

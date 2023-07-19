@@ -15,7 +15,7 @@ import java.util.UUID;
 
 /**
  * <p>
- * 获取 JWK 工具类
+ * 获取 JWK 工具类.
  * </p>
  *
  * @author Lypxc

@@ -11,9 +11,9 @@ import org.springframework.util.Assert;
 import java.util.*;
 
 /**
- * {@code OAuth2ResourceOwnerPasswordAuthenticationToken}
  * <p>
- * description: An Object implementation used for password gant an OAuth 2.0 Access Token
+ * An Object implementation used for password gant an OAuth 2.0 Access Token
+ * </p>
  *
  * @author Lypxc
  * @since 2022-12-14
@@ -32,13 +32,9 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationToken extends Abstra
 	private final Map<String, Object> additionalParameters;
 
 	/**
+	 * <p>
 	 * 自定义创建Token
-	 * @param authorities the collection of <tt>GrantedAuthority</tt>s for the principal
-	 * represented by this authentication object.
-	 * @param authorizationGrantType
-	 * @param clientPrincipal
-	 * @param scopes
-	 * @param additionalParameters
+	 * </p>
 	 */
 	public OAuth2ResourceOwnerPasswordAuthenticationToken(Collection<? extends GrantedAuthority> authorities,
 			AuthorizationGrantType authorizationGrantType, Object clientPrincipal, Set<String> scopes,

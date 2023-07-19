@@ -12,11 +12,11 @@ import io.github.panxiaochao.authorization.server.core.authorization.password.OA
 import io.github.panxiaochao.authorization.server.core.authorization.password.OAuth2ResourceOwnerPasswordAuthenticationToken;
 import io.github.panxiaochao.authorization.server.core.handler.ServerAccessDeniedHandler;
 import io.github.panxiaochao.authorization.server.core.handler.ServerAuthenticationFailureHandler;
+import io.github.panxiaochao.authorization.server.core.handler.ServerAuthenticationSuccessHandler;
 import io.github.panxiaochao.authorization.server.core.jackson2.mixin.OAuth2ResourceOwnerPasswordMixin;
 import io.github.panxiaochao.authorization.server.core.jose.Jwks;
 import io.github.panxiaochao.authorization.server.core.service.UserDetailsServiceImpl;
 import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
-import io.github.panxiaochao.core.utils.JacksonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -42,20 +42,23 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.token.*;
-import org.springframework.security.oauth2.server.authorization.web.authentication.*;
+import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationCodeRequestAuthenticationConverter;
+import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationConsentAuthenticationConverter;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * <p>
+ * AuthorizationServerConfiguration 配置类.
  * </p>
  *
  * @author Lypxc
@@ -105,29 +108,21 @@ public class AuthorizationServerConfiguration {
 		authorizationServerConfigurer
 			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
 				.accessTokenRequestConverter(new OAuth2ResourceOwnerPasswordAuthenticationConverter())
+				// 增加以下2个内置转换器
+				.accessTokenRequestConverter(new OAuth2AuthorizationCodeRequestAuthenticationConverter())
+				.accessTokenRequestConverter(new OAuth2AuthorizationConsentAuthenticationConverter())
+				// 登录成功
+				.accessTokenResponseHandler(new ServerAuthenticationSuccessHandler())
+				// 登录失败
 				.errorResponseHandler(new ServerAuthenticationFailureHandler()))
 			// 客户端认证
 			.clientAuthentication(clientAuthentication -> clientAuthentication
+				// 登录失败
 				.errorResponseHandler(new ServerAuthenticationFailureHandler()));
 		DefaultSecurityFilterChain securityFilterChain = http.build();
 		// 注册自定义 providers
 		customizerGrantAuthenticationProviders(http);
 		return securityFilterChain;
-	}
-
-	/**
-	 * request -> xToken 注入请求转换器
-	 * @return DelegatingAuthenticationConverter
-	 */
-	private AuthenticationConverter accessTokenRequestConverter() {
-		// @formatter:off
-		return new DelegatingAuthenticationConverter(Arrays.asList(
-				new OAuth2ResourceOwnerPasswordAuthenticationConverter(),
-				new OAuth2RefreshTokenAuthenticationConverter(),
-				new OAuth2ClientCredentialsAuthenticationConverter(),
-				new OAuth2AuthorizationCodeAuthenticationConverter(),
-				new OAuth2AuthorizationCodeRequestAuthenticationConverter()));
-		// @formatter:on
 	}
 
 	/**
@@ -148,24 +143,22 @@ public class AuthorizationServerConfiguration {
 	}
 
 	/**
-	 * 自定义生成Token机制
+	 * <p>
+	 * 使用 JwtGenerator 代替 OAuth2AccessTokenGenerator(使用Base64StringKeyGenerator) 模式生成token
+	 * </p>
 	 * @return OAuth2TokenGenerator
 	 */
 	@Bean
 	public OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator(JWKSource<SecurityContext> jwkSource) {
-		LOGGER.info(">>> 自定义 OAuth2TokenGenerator 配置");
 		JwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource);
 		JwtGenerator jwtGenerator = new JwtGenerator(jwtEncoder);
-		OAuth2AccessTokenGenerator accessTokenGenerator = new OAuth2AccessTokenGenerator();
 		OAuth2RefreshTokenGenerator refreshTokenGenerator = new OAuth2RefreshTokenGenerator();
-		// OAuth2CustomizeAccessTokenGenerator customizeAccessTokenGenerator = new
-		// OAuth2CustomizeAccessTokenGenerator(jwtEncoder);
 		// 这里是有顺序的，自定义的需要放在最前面
-		return new DelegatingOAuth2TokenGenerator(jwtGenerator, accessTokenGenerator, refreshTokenGenerator);
+		return new DelegatingOAuth2TokenGenerator(jwtGenerator, refreshTokenGenerator);
 	}
 
 	/**
-	 * 客户端在认证中心的授权信息服务
+	 * 客户端在认证中心的授权信息服务, 授权码、授权Token、刷新Token持久化
 	 * @param jdbcTemplate 数据源
 	 * @param registeredClientRepository 注册客户端仓库
 	 * @return OAuth2AuthorizationService
@@ -177,7 +170,7 @@ public class AuthorizationServerConfiguration {
 				registeredClientRepository);
 		JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper authorizationRowMapper = new JdbcOAuth2AuthorizationService.OAuth2AuthorizationRowMapper(
 				registeredClientRepository);
-		ObjectMapper objectMapper = JacksonUtil.objectMapper();
+		ObjectMapper objectMapper = new ObjectMapper();
 		ClassLoader classLoader = JdbcOAuth2AuthorizationService.class.getClassLoader();
 		List<Module> securityModules = SecurityJackson2Modules.getModules(classLoader);
 		objectMapper.registerModules(securityModules);
@@ -204,6 +197,7 @@ public class AuthorizationServerConfiguration {
 	}
 
 	/**
+	 * JSON Web Key (JWK) source.
 	 * @return JWKSource
 	 */
 	@Bean
@@ -229,7 +223,6 @@ public class AuthorizationServerConfiguration {
 	 */
 	@Bean
 	public AuthorizationServerSettings authorizationServerSettings() {
-		LOGGER.info(">>> 自定义 AuthorizationServerSettings 配置");
 		return AuthorizationServerSettings.builder()
 			.authorizationEndpoint("/oauth2/v1/authorize")
 			.tokenEndpoint("/oauth2/v1/token")

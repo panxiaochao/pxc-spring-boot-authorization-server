@@ -1,5 +1,6 @@
 package io.github.panxiaochao.authorization.server.core.endpoint;
 
+import io.github.panxiaochao.core.utils.ArrayUtil;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.util.LinkedMultiValueMap;
@@ -9,9 +10,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
- * {@code OAuth2EndpointUtils}
  * <p>
- * description:
+ * 端点工具类.
+ * </p>
  *
  * @author Lypxc
  * @since 2022-12-14
@@ -27,7 +28,7 @@ public class OAuth2EndpointUtils {
 		Map<String, String[]> parameterMap = request.getParameterMap();
 		MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>(parameterMap.size());
 		parameterMap.forEach((key, values) -> {
-			if (values.length > 0) {
+			if (ArrayUtil.isNotEmpty(values)) {
 				for (String value : values) {
 					parameters.add(key, value);
 				}

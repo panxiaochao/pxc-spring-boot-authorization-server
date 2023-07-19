@@ -19,7 +19,7 @@ import java.io.PrintWriter;
 
 /**
  * <p>
- * 登录失败
+ * 登录失败.
  * </p>
  *
  * @author Lypxc

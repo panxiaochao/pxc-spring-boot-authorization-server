@@ -33,7 +33,7 @@ public class RegisteredClientConfiguration {
 	private PasswordEncoder passwordEncoder;
 
 	/**
-	 * （必需）负责注册的 Client 信息
+	 * （必需）负责注册的 Client 信息, 对应 oauth2_registered_client 表.
 	 * @return RegisteredClientRepository
 	 */
 	@Bean
@@ -79,7 +79,7 @@ public class RegisteredClientConfiguration {
 
 	/**
 	 * <p>
-	 * http://127.0.0.1:18000/oauth2/authorize?response_type=code&client_id=client_code&scope=message.read&redirect_uri=https://www.baidu.com
+	 * http://127.0.0.1:18000/oauth2/v1/authorize?response_type=code&client_id=client_code&scope=message.read&redirect_uri=https://www.baidu.com
 	 * @return RegisteredClient
 	 */
 	// private RegisteredClient createAuthorizationCodeRegisteredClient() {

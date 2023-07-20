@@ -10,6 +10,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import io.github.panxiaochao.authorization.server.core.authorization.password.OAuth2ResourceOwnerPasswordAuthenticationConverter;
 import io.github.panxiaochao.authorization.server.core.authorization.password.OAuth2ResourceOwnerPasswordAuthenticationProvider;
 import io.github.panxiaochao.authorization.server.core.authorization.password.OAuth2ResourceOwnerPasswordAuthenticationToken;
+import io.github.panxiaochao.authorization.server.core.constants.GlobalSecurityConstant;
 import io.github.panxiaochao.authorization.server.core.handler.ServerAccessDeniedHandler;
 import io.github.panxiaochao.authorization.server.core.handler.ServerAuthenticationFailureHandler;
 import io.github.panxiaochao.authorization.server.core.handler.ServerAuthenticationSuccessHandler;
@@ -23,10 +24,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.OAuth2Token;
@@ -46,11 +50,10 @@ import org.springframework.security.oauth2.server.authorization.token.Delegating
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
-import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationCodeRequestAuthenticationConverter;
-import org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationConsentAuthenticationConverter;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.annotation.Resource;
@@ -68,6 +71,8 @@ import java.util.List;
 public class AuthorizationServerConfiguration {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationServerConfiguration.class);
+
+	private static final String CUSTOM_CONSENT_PAGE_URI = "/oauth2/consent";
 
 	@Resource
 	private PasswordEncoder passwordEncoder;
@@ -87,30 +92,17 @@ public class AuthorizationServerConfiguration {
 	@Bean
 	@Order(Ordered.HIGHEST_PRECEDENCE)
 	public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+		// @formatter:off
 		OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
-		// 自定义授权确认页面
-		// authorizationServerConfigurer.authorizationEndpoint(authorizationEndpoint ->
-		// authorizationEndpoint.consentPage(CUSTOM_CONSENT_PAGE_URI));
-		//
-		RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
-		http.requestMatcher(endpointsMatcher)
-			.authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().authenticated())
-			.csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
-			// 授权异常处理
-			.exceptionHandling(exception -> {
-				exception.accessDeniedHandler(new ServerAccessDeniedHandler())
-					// .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
-					// 使用授权码模式登录
-					.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
-			})
-			.apply(authorizationServerConfigurer);
 		// custom converter and provider
 		authorizationServerConfigurer
 			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
 				.accessTokenRequestConverter(new OAuth2ResourceOwnerPasswordAuthenticationConverter())
 				// 增加以下2个内置转换器
-				.accessTokenRequestConverter(new OAuth2AuthorizationCodeRequestAuthenticationConverter())
-				.accessTokenRequestConverter(new OAuth2AuthorizationConsentAuthenticationConverter())
+				// .accessTokenRequestConverter(new
+				// OAuth2AuthorizationCodeRequestAuthenticationConverter())
+				// .accessTokenRequestConverter(new
+				// OAuth2AuthorizationConsentAuthenticationConverter())
 				// 登录成功
 				.accessTokenResponseHandler(new ServerAuthenticationSuccessHandler())
 				// 登录失败
@@ -119,9 +111,34 @@ public class AuthorizationServerConfiguration {
 			.clientAuthentication(clientAuthentication -> clientAuthentication
 				// 登录失败
 				.errorResponseHandler(new ServerAuthenticationFailureHandler()));
+		// 自定义授权确认页面
+		authorizationServerConfigurer
+			.authorizationEndpoint(endpointConfigurer -> endpointConfigurer.consentPage(CUSTOM_CONSENT_PAGE_URI))
+			// Enable OpenID Connect 1.0, 启用 OIDC 1.0
+			.oidc(Customizer.withDefaults());
+		// 获取授权服务器相关的请求端点
+		RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
+		http.requestMatcher(endpointsMatcher)
+			.authorizeRequests(authorizeRequests ->
+					authorizeRequests.anyRequest().authenticated())
+			// 忽略掉相关端点的 CSRF(跨站请求): 对授权端点的访问可以是跨站的
+			.csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
+			// 授权异常处理
+			.exceptionHandling(exception -> {
+				exception.accessDeniedHandler(new ServerAccessDeniedHandler());
+				exception.defaultAuthenticationEntryPointFor(
+						new LoginUrlAuthenticationEntryPoint(GlobalSecurityConstant.LOGIN_PATH),
+						new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+				);
+			})
+			// Accept access tokens for User Info and/or Client Registration
+			.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+			.apply(authorizationServerConfigurer);
+		// 这句意义在于初始化类，可以使用 http.getSharedObject()
 		DefaultSecurityFilterChain securityFilterChain = http.build();
 		// 注册自定义 providers
 		customizerGrantAuthenticationProviders(http);
+		// @formatter:on
 		return securityFilterChain;
 	}
 
@@ -158,7 +175,7 @@ public class AuthorizationServerConfiguration {
 	}
 
 	/**
-	 * 客户端在认证中心的授权信息服务, 授权码、授权Token、刷新Token持久化
+	 * 客户端在认证中心的授权信息服务, 授权码、授权Token、刷新Token持久化, 对应 oauth2_authorization 表
 	 * @param jdbcTemplate 数据源
 	 * @param registeredClientRepository 注册客户端仓库
 	 * @return OAuth2AuthorizationService
@@ -185,7 +202,7 @@ public class AuthorizationServerConfiguration {
 	}
 
 	/**
-	 * 授权码使用 JDBC 查询用户信息
+	 * 授权码使用 JDBC 查询用户信息, 对应 oauth2_authorization_consent 表
 	 * @param jdbcTemplate 数据源
 	 * @param registeredClientRepository 注册客户端仓库
 	 * @return OAuth2AuthorizationService

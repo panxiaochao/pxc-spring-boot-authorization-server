@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>Spring Authorization Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Spring Authorization Server">
+    <meta name="author" content="Lypxc">
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css" th:href="@{/assets/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" href="/assets/css/signin.css" th:href="@{/assets/css/signin.css}"/>
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<form class="form-signin" method="post" th:action="@{/token/login}">
+    <div class="text-center mb-4">
+        <img class="mb-4" src="/assets/img/verify.png" alt="" width="72" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">统一认证系统</h1>
+    </div>
+    <div class="form-label-group">
+        <div th:if="${param.error}" class="alert alert-danger" role="alert">
+            账号或者密码不合法
+        </div>
+        <div th:if="${param.logout}" class="alert alert-success" role="alert">
+            You have been logged out.
+        </div>
+    </div>
+    <div class="form-label-group">
+        <input type="text" id="username" name="username" class="form-control" placeholder="输入账号" required
+               autofocus>
+        <label for="username">账号</label>
+    </div>
+    <div class="form-label-group">
+        <input type="password" id="password" name="password" class="form-control" placeholder="输入密码" required>
+        <label for="password">密码</label>
+    </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <p class="mt-5 mb-3 text-muted text-center">&copy; 2023-2025</p>
+</form>
+</body>
+</html>

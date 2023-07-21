@@ -1,6 +1,6 @@
-package io.github.panxiaochao.authorization.server.core.handler;
+package io.github.panxiaochao.security.core.handler;
 
-import io.github.panxiaochao.authorization.server.core.constants.GlobalSecurityConstant;
+import io.github.panxiaochao.security.core.constants.GlobalSecurityConstant;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;

@@ -10,8 +10,8 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>auth-server</artifactId>
-    <description>auth-server 授权服务器</description>
+    <artifactId>resource-server</artifactId>
+    <description>resource-server 资源服务器Demo</description>
 
     <dependencies>
         <dependency>
@@ -19,23 +19,12 @@
             <artifactId>pxc-framework-web</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-authorization-server</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>nimbus-jose-jwt</artifactId>
-                    <groupId>com.nimbusds</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.nimbusds</groupId>
-            <artifactId>nimbus-jose-jwt</artifactId>
-            <version>${nimbus-jose-jwt.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
@@ -43,13 +32,9 @@
         </dependency>
         <dependency>
             <groupId>io.github.panxiaochao</groupId>
-            <artifactId>infrastructure</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.panxiaochao</groupId>
             <artifactId>security-core</artifactId>
             <version>${revision}</version>
         </dependency>
     </dependencies>
+
 </project>

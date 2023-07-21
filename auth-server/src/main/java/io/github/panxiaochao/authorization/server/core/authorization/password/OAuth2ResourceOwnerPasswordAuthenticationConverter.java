@@ -1,6 +1,6 @@
 package io.github.panxiaochao.authorization.server.core.authorization.password;
 
-import io.github.panxiaochao.authorization.server.core.endpoint.OAuth2EndpointUtils;
+import io.github.panxiaochao.security.core.endpoint.OAuth2EndpointUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;

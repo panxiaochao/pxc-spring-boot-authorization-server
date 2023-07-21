@@ -1,6 +1,9 @@
-package io.github.panxiaochao.authorization.server.core.endpoint;
+package io.github.panxiaochao.security.core.endpoint;
 
 import io.github.panxiaochao.core.utils.ArrayUtil;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.util.LinkedMultiValueMap;
@@ -45,6 +48,32 @@ public class OAuth2EndpointUtils {
 	public static void throwError(String errorCode, String description, String errorUri) {
 		OAuth2Error error = new OAuth2Error(errorCode, description, errorUri);
 		throw new OAuth2AuthenticationException(error);
+	}
+
+	public static String transformAuthenticationException(AuthenticationException exception) {
+		String msg = "";
+		if (exception != null) {
+			if (exception instanceof UsernameNotFoundException || exception instanceof BadCredentialsException) {
+				msg = "账户不存在或密码错误";
+			}
+			else if (exception instanceof LockedException) {
+				msg = "账户被锁定，请联系管理员!";
+			}
+			else if (exception instanceof CredentialsExpiredException) {
+				msg = "证书过期，请联系管理员!";
+			}
+			else if (exception instanceof AccountExpiredException) {
+				msg = "账户过期，请联系管理员!";
+			}
+			else if (exception instanceof DisabledException) {
+				msg = "账户被禁用，请联系管理员!";
+			}
+			else if (exception instanceof OAuth2AuthenticationException) {
+				OAuth2Error error = ((OAuth2AuthenticationException) exception).getError();
+				msg = error.getDescription();
+			}
+		}
+		return msg;
 	}
 
 }

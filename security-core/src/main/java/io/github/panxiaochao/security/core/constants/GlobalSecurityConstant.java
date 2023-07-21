@@ -1,4 +1,4 @@
-package io.github.panxiaochao.authorization.server.core.constants;
+package io.github.panxiaochao.security.core.constants;
 
 /**
  * <p>

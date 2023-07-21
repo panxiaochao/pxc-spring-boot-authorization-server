@@ -1,4 +1,4 @@
-package io.github.panxiaochao.authorization.server.core.handler;
+package io.github.panxiaochao.security.core.handler;
 
 import io.github.panxiaochao.core.utils.StrUtil;
 import org.springframework.http.HttpHeaders;

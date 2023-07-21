@@ -1,6 +1,7 @@
-package io.github.panxiaochao.authorization.server.core.handler;
+package io.github.panxiaochao.security.core.handler;
 
-import io.github.panxiaochao.authorization.server.core.constants.GlobalSecurityConstant;
+import io.github.panxiaochao.security.core.constants.GlobalSecurityConstant;
+import io.github.panxiaochao.security.core.endpoint.OAuth2EndpointUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
@@ -25,7 +26,8 @@ public class ServerFormAuthenticationFailureHandler implements AuthenticationFai
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) {
 		try {
-			log.error(exception.getMessage());
+			String msg = OAuth2EndpointUtils.transformAuthenticationException(exception);
+			log.error(msg);
 			// String url = String.format("/login?error=%s",
 			// URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8.name()));
 			response.sendRedirect(GlobalSecurityConstant.LOGIN_PATH + "?error");

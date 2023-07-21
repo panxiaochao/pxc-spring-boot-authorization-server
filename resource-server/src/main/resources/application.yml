@@ -1,0 +1,15 @@
+# server
+server:
+  port: 18001
+  servlet:
+    context-path: /
+
+# spring
+spring:
+  application:
+    name: spring-boot-resource-server
+  main:
+    allow-circular-references: true
+    allow-bean-definition-overriding: true
+  profiles:
+    active: dev

@@ -1,8 +1,8 @@
 package io.github.panxiaochao.authorization.server.core.authorization.password;
 
-import io.github.panxiaochao.authorization.server.core.endpoint.OAuth2EndpointUtils;
 import io.github.panxiaochao.authorization.server.core.service.UserDetailsServiceImpl;
 import io.github.panxiaochao.core.utils.SpringContextUtil;
+import io.github.panxiaochao.security.core.endpoint.OAuth2EndpointUtils;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

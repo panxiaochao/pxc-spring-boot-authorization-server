@@ -1,9 +1,9 @@
 package io.github.panxiaochao.authorization.server.config;
 
-import io.github.panxiaochao.authorization.server.core.constants.GlobalSecurityConstant;
-import io.github.panxiaochao.authorization.server.core.handler.ServerFormAuthenticationFailureHandler;
-import io.github.panxiaochao.authorization.server.core.handler.ServerFormAuthenticationSuccessHandler;
-import io.github.panxiaochao.authorization.server.core.handler.ServerLogoutSuccessHandler;
+import io.github.panxiaochao.security.core.constants.GlobalSecurityConstant;
+import io.github.panxiaochao.security.core.handler.ServerFormAuthenticationFailureHandler;
+import io.github.panxiaochao.security.core.handler.ServerFormAuthenticationSuccessHandler;
+import io.github.panxiaochao.security.core.handler.ServerLogoutSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;

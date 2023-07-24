@@ -6,6 +6,9 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * <p>
  * 自定义属性.
@@ -59,5 +62,10 @@ public class Oauth2Properties {
 	 * 数据库加密是否是明文
 	 */
 	private boolean plainPassword;
+
+	/**
+	 * 白名单 Url
+	 */
+	private List<String> whiteUrls = new ArrayList<>();
 
 }

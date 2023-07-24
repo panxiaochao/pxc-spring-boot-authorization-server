@@ -18,14 +18,22 @@ spring:
 # auth server settings
 auth:
   server:
-    clientId: client_auth
-    clientSecret: 123456@
-    clientServer: client_server
+    # accessToken 过期时间
     accessTokenTimeToLive: 3600
+    # refreshToken 过期时间
     refreshTokenTimeToLive: 7200
+    # JWK 加密盐种子
     seed: pxc-auth-server
+    # 加密模式
     password-encoder: MD5
+    # 数据库中密码是否明文
     plain-password: true
+    # 过滤白名单
+    white-urls:
+      - /api/create
+      - /token/login
+      - /oauth2/consent
+      - /error
 
 # mybatis-plus 配置
 mybatis-plus:

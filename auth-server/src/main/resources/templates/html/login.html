@@ -34,7 +34,10 @@
     </div>
     <div class="form-label-group">
         <div th:if="${param.error}" class="alert alert-danger" role="alert">
-            账号或者密码不合法
+            账号或者密码不合法.
+        </div>
+        <div th:if="${param.error_requestUrl}" class="alert alert-danger" role="alert">
+            不合法授权登录Url.
         </div>
         <div th:if="${param.logout}" class="alert alert-success" role="alert">
             You have been logged out.

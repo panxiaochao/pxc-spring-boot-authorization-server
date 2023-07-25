@@ -26,7 +26,8 @@ public class ServerAuthenticationEntryPoint implements AuthenticationEntryPoint 
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException authException) throws IOException {
 		String msg = OAuth2EndpointUtils.transformAuthenticationException(authException);
-		String errorMessage = StringUtils.hasText(msg) ? "OAUTH_TOKEN_ILLEGAL: [" + msg + "]" : "OAUTH_TOKEN_ILLEGAL";
+		String errorMessage = StringUtils.hasText(msg) ? "OAUTH_TOKEN_UNAUTHORIZED: [" + msg + "]"
+				: "OAUTH_TOKEN_UNAUTHORIZED";
 		response.setStatus(HttpStatus.UNAUTHORIZED.value());
 		response.setHeader("Content-Type", "application/json;charset=UTF-8");
 		PrintWriter out = response.getWriter();

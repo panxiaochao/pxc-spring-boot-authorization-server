@@ -2,16 +2,19 @@ package io.github.panxiaochao.authorization.server.config;
 
 import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
 import io.github.panxiaochao.security.core.constants.GlobalSecurityConstant;
-import io.github.panxiaochao.security.core.handler.ServerFormAuthenticationFailureHandler;
-import io.github.panxiaochao.security.core.handler.ServerFormAuthenticationSuccessHandler;
+import io.github.panxiaochao.security.core.handler.ServerAccessDeniedHandler;
 import io.github.panxiaochao.security.core.handler.ServerLogoutSuccessHandler;
+import io.github.panxiaochao.security.core.handler.form.ServerFormAuthenticationEntryPoint;
+import io.github.panxiaochao.security.core.handler.form.ServerFormAuthenticationFailureHandler;
+import io.github.panxiaochao.security.core.handler.form.ServerFormAuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
@@ -38,12 +41,24 @@ public class SecurityConfiguration {
 	private Oauth2Properties oauth2Properties;
 
 	/**
-	 * 配置本地静态资源放行
-	 * @return WebSecurityCustomizer
+	 * <p>
+	 * 配置本地静态资源放行, 暴露静态资源
+	 * </p>
+	 * <p>
+	 * <a href= "https://github.com/spring-projects/spring-security/issues/10938">WARN
+	 * when ignoring antMatchers - please use permitAll</a>
+	 * </p>
+	 * @param httpSecurity httpSecurity
 	 */
 	@Bean
-	public WebSecurityCustomizer webSecurityCustomizer() {
-		return (web) -> web.ignoring().antMatchers("/assets/**");
+	@Order(0)
+	public SecurityFilterChain resources(HttpSecurity httpSecurity) throws Exception {
+		httpSecurity.requestMatchers((matchers) -> matchers.antMatchers("/assets/**"))
+			.authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll())
+			.requestCache(RequestCacheConfigurer::disable)
+			.securityContext(AbstractHttpConfigurer::disable)
+			.sessionManagement(AbstractHttpConfigurer::disable);
+		return httpSecurity.build();
 	}
 
 	/**
@@ -52,13 +67,17 @@ public class SecurityConfiguration {
 	 * @return SecurityFilterChain
 	 */
 	@Bean
-	@Order(Ordered.HIGHEST_PRECEDENCE + 1)
+	@Order
 	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) {
 		List<String> whiteUrls = oauth2Properties.getWhiteUrls();
 		// @formatter:off
 		try {
 			// 基础配置
-			httpSecurity.cors().configurationSource(corsConfigurationSource());
+			httpSecurity.cors().configurationSource(corsConfigurationSource())
+					.and().headers().frameOptions().disable()
+					// 设置session是无状态的
+					.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					.and().csrf().disable();
 
 			// 过滤白名单
 			if (CollectionUtils.isEmpty(whiteUrls)) {
@@ -81,7 +100,14 @@ public class SecurityConfiguration {
 							.logoutSuccessHandler(new ServerLogoutSuccessHandler())
 							.deleteCookies("JSESSIONID")
 							.invalidateHttpSession(true))
+					// 异常报错拦截
+					.exceptionHandling(
+							exception -> exception
+									.accessDeniedHandler(new ServerAccessDeniedHandler())
+									.authenticationEntryPoint(new ServerFormAuthenticationEntryPoint())
+					)
 					.csrf().and().headers().frameOptions().sameOrigin();
+
 			return httpSecurity.build();
 		}
 		catch (Exception e) {

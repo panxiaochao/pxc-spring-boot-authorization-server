@@ -1,4 +1,4 @@
-package io.github.panxiaochao.security.core.handler;
+package io.github.panxiaochao.security.core.handler.form;
 
 import io.github.panxiaochao.security.core.constants.GlobalSecurityConstant;
 import org.springframework.security.core.Authentication;
@@ -27,21 +27,22 @@ public class ServerFormAuthenticationSuccessHandler extends SimpleUrlAuthenticat
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-			Authentication authentication) throws ServletException, IOException {
+			Authentication authentication) throws IOException, ServletException {
 		SavedRequest savedRequest = this.requestCache.getRequest(request, response);
 		if (savedRequest == null) {
 			// super.onAuthenticationSuccess(request, response, authentication);
 			// return;
-			getRedirectStrategy().sendRedirect(request, response, GlobalSecurityConstant.LOGIN_PATH + "?error");
+			getRedirectStrategy().sendRedirect(request, response,
+					GlobalSecurityConstant.LOGIN_PATH + "?error_requestUrl");
 			return;
 		}
 		String targetUrlParameter = getTargetUrlParameter();
 		if (isAlwaysUseDefaultTargetUrl()
 				|| (targetUrlParameter != null && StringUtils.hasText(request.getParameter(targetUrlParameter)))) {
 			this.requestCache.removeRequest(request, response);
-			// TODO 优化点
-			// super.onAuthenticationSuccess(request, response, authentication);
-			getRedirectStrategy().sendRedirect(request, response, GlobalSecurityConstant.LOGIN_PATH + "?error");
+			super.onAuthenticationSuccess(request, response, authentication);
+			// getRedirectStrategy().sendRedirect(request, response,
+			// GlobalSecurityConstant.LOGIN_PATH + "?error");
 			return;
 		}
 		clearAuthenticationAttributes(request);

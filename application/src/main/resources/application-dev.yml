@@ -31,7 +31,7 @@ auth:
     # 过滤白名单
     white-urls:
       - /api/create
-      - /token/login
+      - /token/**
       - /oauth2/consent
       - /error
 

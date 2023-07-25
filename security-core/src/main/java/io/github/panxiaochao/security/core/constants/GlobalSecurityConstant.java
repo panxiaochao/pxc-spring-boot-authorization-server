@@ -15,4 +15,9 @@ public interface GlobalSecurityConstant {
 	 */
 	String LOGIN_PATH = "/token/login";
 
+	/**
+	 * 报错页地址
+	 */
+	String ERROR_PATH = "/token/error";
+
 }

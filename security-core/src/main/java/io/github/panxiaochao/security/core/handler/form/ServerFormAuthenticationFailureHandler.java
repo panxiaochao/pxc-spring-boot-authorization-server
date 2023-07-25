@@ -1,4 +1,4 @@
-package io.github.panxiaochao.security.core.handler;
+package io.github.panxiaochao.security.core.handler.form;
 
 import io.github.panxiaochao.security.core.constants.GlobalSecurityConstant;
 import io.github.panxiaochao.security.core.endpoint.OAuth2EndpointUtils;

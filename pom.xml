@@ -27,7 +27,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- base properties -->
-        <spring-boot.version>2.7.13</spring-boot.version>
+        <spring-boot.version>2.7.14</spring-boot.version>
         <pxc-framework.version>2.0.1-SNAPSHOT</pxc-framework.version>
         <spring-security-oauth2-authorization.version>0.4.3</spring-security-oauth2-authorization.version>
         <mybatis-plus-boot-starter.version>3.5.3.1</mybatis-plus-boot-starter.version>

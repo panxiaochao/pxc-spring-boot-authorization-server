@@ -45,12 +45,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		String identityType = IdentityTypeEnum.username.name();
+		String identityType = IdentityTypeEnum.USERNAME.name();
 		if (PHONE_PATTERN.matcher(username).matches()) {
-			identityType = IdentityTypeEnum.phone.name();
+			identityType = IdentityTypeEnum.PHONE.name();
 		}
 		else if (EMAIL_PATTERN.matcher(username).matches()) {
-			identityType = IdentityTypeEnum.email.name();
+			identityType = IdentityTypeEnum.EMAIL.name();
 		}
 		return loadUserByIdentityType(username, identityType);
 	}
@@ -100,7 +100,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Getter
 	enum IdentityTypeEnum {
 
-		username, phone, email, weixin, weibo, qq, dingding
+		USERNAME, PHONE, EMAIL, WEIXIN, WEIBO, QQ, DINGDING
 
 	}
 

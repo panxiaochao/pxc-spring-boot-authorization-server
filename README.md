@@ -4,8 +4,8 @@ An OAuth 2.1 Project, Spring Boot 2.7.X, Spring Authorization Server 0.4.X
 
 ### current version
 
-- Spring Boot 2.7.14
-- spring-security-oauth2-authorization-server 0.4.3
+- Spring Boot 2.7.17
+- spring-security-oauth2-authorization-server 0.4.4
 - jdk >= 1.8
 
 ### next code plan

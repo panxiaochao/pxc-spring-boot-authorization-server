@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.panxiaochao</groupId>
-    <artifactId>spring-boot-authorization-server</artifactId>
+    <artifactId>pxc-spring-boot-authorization-server</artifactId>
     <version>${revision}</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
@@ -27,13 +27,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- base properties -->
-        <spring-boot.version>2.7.14</spring-boot.version>
-        <pxc-framework.version>2.0.1-SNAPSHOT</pxc-framework.version>
-        <spring-security-oauth2-authorization.version>0.4.3</spring-security-oauth2-authorization.version>
-        <mybatis-plus-boot-starter.version>3.5.3.1</mybatis-plus-boot-starter.version>
-        <nimbus-jose-jwt.version>9.25.6</nimbus-jose-jwt.version>
+        <spring-boot.version>2.7.17</spring-boot.version>
+        <pxc-framework.version>2.0.3-SNAPSHOT</pxc-framework.version>
+        <spring-security-oauth2-authorization.version>0.4.4</spring-security-oauth2-authorization.version>
+        <mybatis-plus-boot-starter.version>3.5.4</mybatis-plus-boot-starter.version>
+        <nimbus-jose-jwt.version>9.37</nimbus-jose-jwt.version>
         <!-- 插件版本 -->
-        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <flatten-maven-plugin.version>1.3.0</flatten-maven-plugin.version>
     </properties>
 
@@ -111,6 +111,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
+            <!-- spring-boot-maven-plugin -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
             <!-- 统一版本号管理 -->

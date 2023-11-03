@@ -36,7 +36,7 @@ public class ServerApplication {
 		String applicationName = env.getProperty("spring.application.name") + " is running! Access URLs:";
 		String port = env.getProperty("server.port");
 		String path = env.getProperty("server.servlet.context-path");
-		if (!StringUtils.hasText(path)) {
+		if (!StringUtils.hasText(path) || "/".equals(path)) {
 			path = "";
 		}
 		LOG.info("\n----------------------------------------------------------\n\t{}{}{}{}", applicationName,

@@ -4,6 +4,7 @@ import io.github.panxiaochao.authorization.infrastucture.user.entity.SysUser;
 import io.github.panxiaochao.authorization.infrastucture.user.entity.SysUserAuths;
 import io.github.panxiaochao.authorization.infrastucture.user.service.ISysUserService;
 import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
+import io.github.panxiaochao.security.core.endpoint.OAuth2EndpointUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,8 +12,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -44,13 +45,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	private static final Pattern PHONE_PATTERN = Pattern.compile("^1(3|4|5|6|7|8|9)\\d{9}$");
 
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		String identityType = IdentityTypeEnum.USERNAME.name();
+	public UserDetails loadUserByUsername(String username) {
+		String identityType = IdentityTypeEnum.USERNAME.getName();
 		if (PHONE_PATTERN.matcher(username).matches()) {
-			identityType = IdentityTypeEnum.PHONE.name();
+			identityType = IdentityTypeEnum.PHONE.getName();
 		}
 		else if (EMAIL_PATTERN.matcher(username).matches()) {
-			identityType = IdentityTypeEnum.EMAIL.name();
+			identityType = IdentityTypeEnum.EMAIL.getName();
 		}
 		return loadUserByIdentityType(username, identityType);
 	}
@@ -58,7 +59,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public UserDetails loadUserByIdentityType(String username, String identityType) {
 		SysUser sysUser = getUser(username, identityType);
 		if (sysUser == null) {
-			throw new UsernameNotFoundException("用户[" + username + "]不存在或者密码错误！");
+			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR,
+					"登陆类型[" + identityType + "], 用户[" + username + "]不存在或者密码错误！", null);
 		}
 		Collection<GrantedAuthority> authList = getAuthorities(sysUser);
 		String credential = sysUser.getSysUserAuths()
@@ -68,7 +70,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			.findFirst()
 			.orElse(null);
 		if (credential == null) {
-			throw new UsernameNotFoundException("用户[" + username + "]密码错误！");
+			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR,
+					"登陆类型[" + identityType + "], 用户[" + username + "]密码不存在！", null);
 		}
 		return createUserDetails(username, credential, authList);
 	}
@@ -100,7 +103,36 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Getter
 	enum IdentityTypeEnum {
 
-		USERNAME, PHONE, EMAIL, WEIXIN, WEIBO, QQ, DINGDING
+		/**
+		 * 用户名
+		 */
+		USERNAME("username"),
+		/**
+		 * 手机号
+		 */
+		PHONE("phone"),
+		/**
+		 * 邮箱
+		 */
+		EMAIL("email"),
+		/**
+		 * 微信号
+		 */
+		WEIXIN("weixin"),
+		/**
+		 * 微博
+		 */
+		WEIBO("weibo"),
+		/**
+		 * QQ号
+		 */
+		QQ("qq"),
+		/**
+		 * 钉钉
+		 */
+		DD("dd");
+
+		private final String name;
 
 	}
 

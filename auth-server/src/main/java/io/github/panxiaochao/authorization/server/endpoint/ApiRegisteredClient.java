@@ -43,6 +43,9 @@ public class ApiRegisteredClient {
 	@Resource
 	private PasswordEncoder passwordEncoder;
 
+	/**
+	 * http://127.0.0.1:18000/api/create?grantType=authorization_code&clientId=client_code&secret=123456@
+	 */
 	@GetMapping("/create")
 	public R<String> createRegisteredClient(@RequestParam String grantType, @RequestParam String clientId,
 			@RequestParam String secret) {
@@ -64,7 +67,7 @@ public class ApiRegisteredClient {
 	private R<String> createRegisteredClient(String clientId, String secret) {
 		RegisteredClient registeredClient = registeredClientRepository.findByClientId(clientId);
 		if (Objects.isNull(registeredClient)) {
-			RegisteredClient.withId(UUID.randomUUID().toString())
+			registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
 				.clientId(clientId)
 				.clientSecret(passwordEncoder.encode(secret))
 				// .clientName(oauth2Properties.getClientServer())
@@ -79,6 +82,7 @@ public class ApiRegisteredClient {
 				.tokenSettings(tokenSettings())
 				.clientSettings(clientSettings(false))
 				.build();
+			registeredClientRepository.save(registeredClient);
 		}
 		else {
 			return R.fail(clientId + "已存在！");
@@ -87,12 +91,14 @@ public class ApiRegisteredClient {
 	}
 
 	/**
-	 * <pre>http://127.0.0.1:18000/oauth2/v1/authorize?response_type=code&client_id=client_code&scope=message.read&redirect_uri=https://www.baidu.com</pre>
+	 * <pre>
+	 *     http://127.0.0.1:18000/oauth2/v1/authorize?response_type=code&scope=openid profile&client_id=client_code&redirect_uri=https://www.baidu.com
+	 * </pre>
 	 */
 	private R<String> createAuthorizationCodeRegisteredClient(String clientId, String secret) {
 		RegisteredClient registeredClient = registeredClientRepository.findByClientId(clientId);
 		if (Objects.isNull(registeredClient)) {
-			RegisteredClient.withId(UUID.randomUUID().toString())
+			registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
 				.clientId(clientId)
 				.clientSecret(passwordEncoder.encode(secret))
 				// .clientName("client_code_server")
@@ -101,15 +107,20 @@ public class ApiRegisteredClient {
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
 				// 回调地址
-				.redirectUri("http://127.0.0.1:8080/login/oauth2/code/messaging-client-oidc")
-				.redirectUri("http://127.0.0.1:8080/authorized")
+				// .redirectUri("http://127.0.0.1:8080/login/oauth2/code/messaging-client-oidc")
+				// .redirectUri("http://127.0.0.1:8080/authorized")
 				.redirectUri("https://www.baidu.com")
 				.scope(OidcScopes.OPENID)
+				.scope(OidcScopes.PROFILE)
+				.scope(OidcScopes.EMAIL)
+				.scope(OidcScopes.PHONE)
+				.scope(OidcScopes.PROFILE)
 				.scope("message.read")
 				.scope("message.write")
 				.tokenSettings(tokenSettings())
 				.clientSettings(clientSettings(true))
 				.build();
+			registeredClientRepository.save(registeredClient);
 		}
 		else {
 			return R.fail(clientId + "已存在！");

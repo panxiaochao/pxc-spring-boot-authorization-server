@@ -2,7 +2,7 @@
 spring:
   # 数据库
   datasource:
-    url: jdbc:mysql://localhost:3306/oauth2?rewriteBatchedStatements=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowMultiQueries=true&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/pxc-system?rewriteBatchedStatements=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowMultiQueries=true&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
     username: root
     password: root123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -34,6 +34,7 @@ auth:
       - /token/**
       - /oauth2/consent
       - /error
+      - /assets/**
 
 # mybatis-plus 配置
 mybatis-plus:

@@ -106,31 +106,31 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		/**
 		 * 用户名
 		 */
-		USERNAME("username"),
+		USERNAME("USERNAME"),
 		/**
 		 * 手机号
 		 */
-		PHONE("phone"),
+		PHONE("PHONE"),
 		/**
 		 * 邮箱
 		 */
-		EMAIL("email"),
+		EMAIL("EMAIL"),
 		/**
 		 * 微信号
 		 */
-		WEIXIN("weixin"),
+		WEIXIN("WEIXIN"),
 		/**
 		 * 微博
 		 */
-		WEIBO("weibo"),
+		WEIBO("WEIBO"),
 		/**
 		 * QQ号
 		 */
-		QQ("qq"),
+		QQ("QQ"),
 		/**
 		 * 钉钉
 		 */
-		DD("dd");
+		DD("DD");
 
 		private final String name;
 

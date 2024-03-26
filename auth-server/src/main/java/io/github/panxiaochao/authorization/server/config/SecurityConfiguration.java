@@ -12,9 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
@@ -54,10 +51,10 @@ public class SecurityConfiguration {
 	@Order(0)
 	public SecurityFilterChain resources(HttpSecurity httpSecurity) throws Exception {
 		httpSecurity.requestMatchers((matchers) -> matchers.antMatchers("/assets/**"))
-			.authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll())
-			.requestCache(RequestCacheConfigurer::disable)
-			.securityContext(AbstractHttpConfigurer::disable)
-			.sessionManagement(AbstractHttpConfigurer::disable);
+			.authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll());
+		// .requestCache(RequestCacheConfigurer::disable)
+		// .securityContext(AbstractHttpConfigurer::disable)
+		// .sessionManagement(AbstractHttpConfigurer::disable);
 		return httpSecurity.build();
 	}
 
@@ -73,11 +70,7 @@ public class SecurityConfiguration {
 		// @formatter:off
 		try {
 			// 基础配置
-			httpSecurity.cors().configurationSource(corsConfigurationSource())
-					.and().headers().frameOptions().disable()
-					// 设置session是无状态的
-					.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-					.and().csrf().disable();
+			httpSecurity.cors().configurationSource(corsConfigurationSource());
 
 			// 过滤白名单
 			if (CollectionUtils.isEmpty(whiteUrls)) {

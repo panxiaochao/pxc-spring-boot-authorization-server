@@ -86,7 +86,7 @@ public class SysUser extends AutoPO {
 	/**
 	 * 人员状态：1正常，0不正常
 	 */
-	private String status;
+	private String state;
 
 	/**
 	 * 皮肤风格

@@ -1,7 +1,11 @@
 package io.github.panxiaochao.security.core.endpoint;
 
 import io.github.panxiaochao.core.utils.ArrayUtil;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AccountExpiredException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -70,7 +74,10 @@ public class OAuth2EndpointUtils {
 			}
 			else if (exception instanceof OAuth2AuthenticationException) {
 				OAuth2Error error = ((OAuth2AuthenticationException) exception).getError();
-				msg = error.getDescription();
+				msg = error.getErrorCode() + " " + error.getDescription();
+			}
+			else {
+				msg = exception.getMessage();
 			}
 		}
 		return msg;

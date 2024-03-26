@@ -29,6 +29,7 @@
         <!-- base properties -->
         <spring-boot.version>2.7.17</spring-boot.version>
         <pxc-framework.version>2.0.3-SNAPSHOT</pxc-framework.version>
+        <!-- 0.4.5 版本authorization_code请求模式有变化 -->
         <spring-security-oauth2-authorization.version>0.4.4</spring-security-oauth2-authorization.version>
         <mybatis-plus-boot-starter.version>3.5.4</mybatis-plus-boot-starter.version>
         <nimbus-jose-jwt.version>9.37</nimbus-jose-jwt.version>
@@ -107,18 +108,6 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <!-- 编译环境 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-
-            <!-- spring-boot-maven-plugin -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-
             <!-- 统一版本号管理 -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

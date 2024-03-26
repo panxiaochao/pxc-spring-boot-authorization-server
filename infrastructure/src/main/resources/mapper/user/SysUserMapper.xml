@@ -17,7 +17,7 @@
         <result column="fax" property="fax"/>
         <result column="sort" property="sort"/>
         <result column="remark" property="remark"/>
-        <result column="status" property="status"/>
+        <result column="state" property="state"/>
         <result column="skins" property="skins"/>
         <result column="org_id" property="orgId"/>
         <result column="org_code" property="orgCode"/>
@@ -32,7 +32,7 @@
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
         id
-        , real_name, nick_name, id_card, avatar, sex, address, email, mobile, tel, fax, sort, remark, status, skins, org_id, org_code, create_time, update_time, login_nums, login_error_nums, login_time, expire_time
+        , real_name, nick_name, id_card, avatar, sex, address, email, mobile, tel, fax, sort, remark, state, skins, org_id, org_code, create_time, update_time, login_nums, login_error_nums, login_time, expire_time
     </sql>
 
 </mapper>

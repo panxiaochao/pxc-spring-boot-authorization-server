@@ -43,7 +43,7 @@ public class SysRole implements Serializable {
 	/**
 	 * 描述
 	 */
-	private String description;
+	private String remark;
 
 	/**
 	 * 排序
@@ -53,7 +53,7 @@ public class SysRole implements Serializable {
 	/**
 	 * 状态：1正常，0不正常
 	 */
-	private String status;
+	private String state;
 
 	/**
 	 * 创建时间

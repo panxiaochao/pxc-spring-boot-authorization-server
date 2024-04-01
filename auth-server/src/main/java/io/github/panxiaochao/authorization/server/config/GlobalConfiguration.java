@@ -1,8 +1,8 @@
 package io.github.panxiaochao.authorization.server.config;
 
-import io.github.panxiaochao.authorization.server.core.crypto.PasswordEncoderFactory;
+import io.github.panxiaochao.security.core.password.PasswordEncoderFactory;
 import io.github.panxiaochao.authorization.server.core.service.UserDetailsServiceImpl;
-import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
+import io.github.panxiaochao.authorization.server.properties.AuthorizationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -34,10 +34,10 @@ public class GlobalConfiguration {
 	 * @return PasswordEncoder
 	 */
 	@Bean
-	public PasswordEncoder passwordEncoder(Oauth2Properties oauth2Properties) {
-		return Objects.isNull(oauth2Properties.getPasswordEncoder())
+	public PasswordEncoder passwordEncoder(AuthorizationProperties authorizationProperties) {
+		return Objects.isNull(authorizationProperties.getPasswordEncoder())
 				? PasswordEncoderFactory.createDelegatingPasswordEncoder() : PasswordEncoderFactory
-					.createDelegatingPasswordEncoder(oauth2Properties.getPasswordEncoder().getName());
+					.createDelegatingPasswordEncoder(authorizationProperties.getPasswordEncoder().getName());
 	}
 
 }

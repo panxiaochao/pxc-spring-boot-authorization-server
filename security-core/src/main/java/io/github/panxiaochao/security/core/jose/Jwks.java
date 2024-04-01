@@ -27,17 +27,18 @@ public final class Jwks {
 	}
 
 	public static RSAKey generateRsaKey() {
-		KeyPair keyPair = KeyGeneratorUtil.generateRsaKeyPair();
-		RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-		RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-		return new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(UUID.randomUUID().toString()).build();
+		return generateRsaKey(null);
 	}
 
 	public static RSAKey generateRsaKey(String seed) {
+		return generateRsaKey(seed, UUID.randomUUID().toString());
+	}
+
+	public static RSAKey generateRsaKey(String seed, String keyId) {
 		KeyPair keyPair = KeyGeneratorUtil.generateRsaKeyPair(seed);
 		RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
 		RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-		return new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(UUID.randomUUID().toString()).build();
+		return new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(keyId).build();
 	}
 
 	public static ECKey generateEc() {

@@ -7,14 +7,20 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import io.github.panxiaochao.authorization.server.core.authorization.oidc.OidcUserDetailAuthenticationConverter;
+import io.github.panxiaochao.authorization.server.core.authorization.oidc.OidcUserDetailAuthenticationProvider;
+import io.github.panxiaochao.authorization.server.core.authorization.oidc.OidcUserDetailAuthenticationSuccessHandler;
 import io.github.panxiaochao.authorization.server.core.authorization.password.OAuth2ResourceOwnerPasswordAuthenticationConverter;
 import io.github.panxiaochao.authorization.server.core.authorization.password.OAuth2ResourceOwnerPasswordAuthenticationProvider;
 import io.github.panxiaochao.authorization.server.core.authorization.password.OAuth2ResourceOwnerPasswordAuthenticationToken;
 import io.github.panxiaochao.authorization.server.core.jackson2.mixin.OAuth2ResourceOwnerPasswordMixin;
+import io.github.panxiaochao.authorization.server.core.oidc.OidcUserDetailScopes;
+import io.github.panxiaochao.authorization.server.core.oidc.OidcUserDetailStandardClaimNames;
 import io.github.panxiaochao.authorization.server.core.service.UserDetailsServiceImpl;
-import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
+import io.github.panxiaochao.authorization.server.properties.AuthorizationProperties;
 import io.github.panxiaochao.security.core.constants.GlobalSecurityConstant;
 import io.github.panxiaochao.security.core.handler.ServerAccessDeniedHandler;
+import io.github.panxiaochao.security.core.handler.ServerAuthenticationEntryPoint;
 import io.github.panxiaochao.security.core.handler.ServerAuthenticationFailureHandler;
 import io.github.panxiaochao.security.core.handler.ServerAuthenticationSuccessHandler;
 import io.github.panxiaochao.security.core.jose.Jwks;
@@ -27,10 +33,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.OAuth2Token;
@@ -45,6 +50,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
+import org.springframework.security.oauth2.server.authorization.oidc.OidcProviderConfiguration;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
@@ -57,7 +63,9 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * <p>
@@ -81,7 +89,7 @@ public class AuthorizationServerConfiguration {
 	private UserDetailsServiceImpl userDetailService;
 
 	@Resource
-	private Oauth2Properties oauth2Properties;
+	private AuthorizationProperties authorizationProperties;
 
 	/**
 	 * A Spring Security filter chain for the Protocol Endpoints.
@@ -97,7 +105,10 @@ public class AuthorizationServerConfiguration {
 		// custom converter and provider
 		authorizationServerConfigurer
 			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
-				.accessTokenRequestConverter(new OAuth2ResourceOwnerPasswordAuthenticationConverter())
+				.accessTokenRequestConverters(authenticationConverters -> {
+					authenticationConverters.add(new OAuth2ResourceOwnerPasswordAuthenticationConverter());
+					authenticationConverters.add(new OidcUserDetailAuthenticationConverter());
+				})
 				// 增加以下2个内置转换器
 				// .accessTokenRequestConverter(new
 				// OAuth2AuthorizationCodeRequestAuthenticationConverter())
@@ -113,9 +124,25 @@ public class AuthorizationServerConfiguration {
 				.errorResponseHandler(new ServerAuthenticationFailureHandler()));
 		// 自定义授权确认页面
 		authorizationServerConfigurer
-			.authorizationEndpoint(endpointConfigurer -> endpointConfigurer.consentPage(CUSTOM_CONSENT_PAGE_URI))
-			// Enable OpenID Connect 1.0, 启用 OIDC 1.0
-			.oidc(Customizer.withDefaults());
+			.authorizationEndpoint(endpointConfigurer -> endpointConfigurer.consentPage(CUSTOM_CONSENT_PAGE_URI));
+		// Enable OpenID Connect 1.0, 启用 OIDC 1.0, 自定义扩展处理 OIDC 1.0
+		authorizationServerConfigurer.oidc(oidcConfigurer -> {
+			// 提供用户自定义端点
+			oidcConfigurer.userInfoEndpoint(userInfoEndpointCustomizer -> {
+				userInfoEndpointCustomizer.userInfoResponseHandler(new OidcUserDetailAuthenticationSuccessHandler());
+				userInfoEndpointCustomizer.userInfoRequestConverter(new OidcUserDetailAuthenticationConverter());
+				userInfoEndpointCustomizer.errorResponseHandler(new ServerAuthenticationFailureHandler());
+			});
+			// 提供自定义客户端注册端点
+			oidcConfigurer.clientRegistrationEndpoint(clientRegistrationEndpointCustomizer -> {
+				clientRegistrationEndpointCustomizer.errorResponseHandler(new ServerAuthenticationFailureHandler());
+				clientRegistrationEndpointCustomizer.clientRegistrationResponseHandler(new OidcUserDetailAuthenticationSuccessHandler());
+			});
+			// 提供 .well-known/openid-configuration 声明自定义能力配置项
+			oidcConfigurer.providerConfigurationEndpoint(providerConfigurationEndpointCustomizer -> {
+				providerConfigurationEndpointCustomizer.providerConfigurationCustomizer(oidcProviderConfigurationCustomizer());
+			});
+		});
 		// 获取授权服务器相关的请求端点
 		RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
 		http.requestMatcher(endpointsMatcher)
@@ -132,7 +159,11 @@ public class AuthorizationServerConfiguration {
 				);
 			})
 			// Accept access tokens for User Info and/or Client Registration
-			.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+			.oauth2ResourceServer(oauth2ResourceServerCustomizer -> {
+				oauth2ResourceServerCustomizer.jwt();
+				oauth2ResourceServerCustomizer.accessDeniedHandler(new ServerAccessDeniedHandler());
+				oauth2ResourceServerCustomizer.authenticationEntryPoint(new ServerAuthenticationEntryPoint());
+			})
 			.apply(authorizationServerConfigurer);
 		// 这句意义在于初始化类，可以使用 http.getSharedObject()
 		DefaultSecurityFilterChain securityFilterChain = http.build();
@@ -148,15 +179,55 @@ public class AuthorizationServerConfiguration {
 	 * </p>
 	 */
 	private void customizerGrantAuthenticationProviders(HttpSecurity http) {
-		OAuth2ResourceOwnerPasswordAuthenticationProvider resourceOwnerPasswordAuthenticationProvider = new OAuth2ResourceOwnerPasswordAuthenticationProvider();
-		// 自定义 DaoAuthenticationProvider
+		AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+		OAuth2AuthorizationService authorizationService = http.getSharedObject(OAuth2AuthorizationService.class);
+		OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator = http.getSharedObject(OAuth2TokenGenerator.class);
+		// 自定义密码模式
+		OAuth2ResourceOwnerPasswordAuthenticationProvider resourceOwnerPasswordAuthenticationProvider = new OAuth2ResourceOwnerPasswordAuthenticationProvider(
+				authenticationManager, authorizationService, tokenGenerator);
+		// 自定义 DaoAuthenticationProvider 模式
 		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
 		daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
 		daoAuthenticationProvider.setUserDetailsService(userDetailService);
-		// 密码模式
+		// 自定义 OIDC OidcUserDetailAuthenticationProvider 模式
+		OidcUserDetailAuthenticationProvider oidcUserDetailAuthenticationProvider = new OidcUserDetailAuthenticationProvider(
+				authorizationService);
+
 		http.authenticationProvider(resourceOwnerPasswordAuthenticationProvider);
-		// 自定义Dao模式
 		http.authenticationProvider(daoAuthenticationProvider);
+		http.authenticationProvider(oidcUserDetailAuthenticationProvider);
+	}
+
+	/**
+	 * 扩展 oidc 的默认能力配置项
+	 */
+	private Consumer<OidcProviderConfiguration.Builder> oidcProviderConfigurationCustomizer() {
+		return builder -> builder.claims(claimsConsumer -> {
+			claimsConsumer.put("claims_supported",
+					Arrays.asList(OidcUserDetailStandardClaimNames.SUB, OidcUserDetailStandardClaimNames.NAME,
+							OidcUserDetailStandardClaimNames.GIVEN_NAME, OidcUserDetailStandardClaimNames.FAMILY_NAME,
+							OidcUserDetailStandardClaimNames.MIDDLE_NAME, OidcUserDetailStandardClaimNames.NICKNAME,
+							OidcUserDetailStandardClaimNames.PREFERRED_USERNAME,
+							OidcUserDetailStandardClaimNames.PROFILE, OidcUserDetailStandardClaimNames.PICTURE,
+							OidcUserDetailStandardClaimNames.WEBSITE, OidcUserDetailStandardClaimNames.EMAIL,
+							OidcUserDetailStandardClaimNames.EMAIL_VERIFIED, OidcUserDetailStandardClaimNames.GENDER,
+							OidcUserDetailStandardClaimNames.BIRTHDATE, OidcUserDetailStandardClaimNames.ZONEINFO,
+							OidcUserDetailStandardClaimNames.LOCALE, OidcUserDetailStandardClaimNames.PHONE_NUMBER,
+							OidcUserDetailStandardClaimNames.PHONE_NUMBER_VERIFIED,
+							OidcUserDetailStandardClaimNames.ADDRESS, OidcUserDetailStandardClaimNames.UPDATED_AT,
+							OidcUserDetailStandardClaimNames.USERNAME, OidcUserDetailStandardClaimNames.ROLES,
+							OidcUserDetailStandardClaimNames.UNION_ID, OidcUserDetailStandardClaimNames.TENANT_ID));
+		}).scopes(strings -> {
+			strings.add(OidcUserDetailScopes.PROFILE);
+			strings.add(OidcUserDetailScopes.EMAIL);
+			strings.add(OidcUserDetailScopes.ADDRESS);
+			strings.add(OidcUserDetailScopes.PHONE);
+			strings.add(OidcUserDetailScopes.OPENID);
+			strings.add(OidcUserDetailScopes.USERNAME);
+			strings.add(OidcUserDetailScopes.ROLES);
+			strings.add(OidcUserDetailScopes.UNION_ID);
+			strings.add(OidcUserDetailScopes.TENANT_ID);
+		});
 	}
 
 	/**
@@ -219,7 +290,14 @@ public class AuthorizationServerConfiguration {
 	 */
 	@Bean
 	public JWKSource<SecurityContext> jwkSource() {
-		RSAKey rsaKey = Jwks.generateRsaKey(oauth2Properties.getSeed());
+		// 首次启动初始化 KeyId, 解决每次启动Token验证失效
+		// 是由于KeyId每次生成不一样导致，这里加不加缓存根据个人情况而定
+		// String keyId = Base64.getEncoder()
+		// .encodeToString(authorizationProperties.getSeed().getBytes(StandardCharsets.UTF_8));
+		// if (!StringUtils.hasText(RedissonUtil.INSTANCE().get("RSAKey:" + keyId))) {
+		// RedissonUtil.INSTANCE().set("RSAKey:" + keyId, keyId);
+		// }
+		RSAKey rsaKey = Jwks.generateRsaKey(authorizationProperties.getSeed());
 		JWKSet jwkSet = new JWKSet(rsaKey);
 		return new ImmutableJWKSet<>(jwkSet);
 	}

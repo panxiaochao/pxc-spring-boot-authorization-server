@@ -37,7 +37,7 @@ public class Oauth2TokenEndpoint {
 	/**
 	 * 错误页面
 	 */
-	@GetMapping("token/error")
+	@GetMapping("/token/error")
 	public String error() {
 		return "html/error";
 	}

@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +15,7 @@ import java.io.PrintWriter;
 
 /**
  * <p>
- * 登录失败.
+ * 身份验证失败.
  * </p>
  *
  * @author Lypxc
@@ -29,8 +28,7 @@ public class ServerAuthenticationFailureHandler implements AuthenticationFailure
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) {
 		String msg = OAuth2EndpointUtils.transformAuthenticationException(exception);
-		String username = request.getParameter(OAuth2ParameterNames.USERNAME);
-		log.error("{}登录失败，异常：", username, exception);
+		log.error("身份验证失败", exception);
 		response.setStatus(HttpStatus.OK.value());
 		response.setHeader("Content-Type", "application/json;charset=UTF-8");
 		try {

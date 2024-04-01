@@ -1,6 +1,7 @@
 package io.github.panxiaochao.authorization.server.endpoint;
 
-import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
+import io.github.panxiaochao.authorization.server.core.oidc.OidcUserDetailScopes;
+import io.github.panxiaochao.authorization.server.properties.AuthorizationProperties;
 import io.github.panxiaochao.core.response.R;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -38,7 +41,7 @@ public class ApiRegisteredClient {
 	private RegisteredClientRepository registeredClientRepository;
 
 	@Resource
-	private Oauth2Properties oauth2Properties;
+	private AuthorizationProperties authorizationProperties;
 
 	@Resource
 	private PasswordEncoder passwordEncoder;
@@ -48,12 +51,12 @@ public class ApiRegisteredClient {
 	 */
 	@GetMapping("/create")
 	public R<String> createRegisteredClient(@RequestParam String grantType, @RequestParam String clientId,
-			@RequestParam String secret) {
+			@RequestParam String secret, @RequestParam(required = false) String redirectUri) {
 		if ("password".equals(grantType)) {
 			return createRegisteredClient(clientId, secret);
 		}
 		else if ("authorization_code".equals(grantType)) {
-			return createAuthorizationCodeRegisteredClient(clientId, secret);
+			return createAuthorizationCodeRegisteredClient(clientId, secret, redirectUri);
 		}
 		else {
 			return R.fail(grantType + " is not supported");
@@ -70,7 +73,7 @@ public class ApiRegisteredClient {
 			registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
 				.clientId(clientId)
 				.clientSecret(passwordEncoder.encode(secret))
-				// .clientName(oauth2Properties.getClientServer())
+				// .clientName(authorizationProperties.getClientServer())
 				// 端点的调用模式 client_id:client_secret Base64编码
 				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 				.authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
@@ -93,9 +96,10 @@ public class ApiRegisteredClient {
 	/**
 	 * <pre>
 	 *     http://127.0.0.1:18000/oauth2/v1/authorize?response_type=code&scope=openid profile&client_id=client_code&redirect_uri=https://www.baidu.com
+	 *     http://127.0.0.1:18000/oauth2/v1/authorize?response_type=code&scope=openid profile&client_id=client-code-scope&redirect_uri=https://www.baidu.com
 	 * </pre>
 	 */
-	private R<String> createAuthorizationCodeRegisteredClient(String clientId, String secret) {
+	private R<String> createAuthorizationCodeRegisteredClient(String clientId, String secret, String redirectUri) {
 		RegisteredClient registeredClient = registeredClientRepository.findByClientId(clientId);
 		if (Objects.isNull(registeredClient)) {
 			registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -110,11 +114,21 @@ public class ApiRegisteredClient {
 				// .redirectUri("http://127.0.0.1:8080/login/oauth2/code/messaging-client-oidc")
 				// .redirectUri("http://127.0.0.1:8080/authorized")
 				.redirectUri("https://www.baidu.com")
-				.scope(OidcScopes.OPENID)
-				.scope(OidcScopes.PROFILE)
-				.scope(OidcScopes.EMAIL)
-				.scope(OidcScopes.PHONE)
-				.scope(OidcScopes.PROFILE)
+				.redirectUris(uris -> {
+					if (StringUtils.hasText(redirectUri)) {
+						String[] redirectUris = redirectUri.split(",");
+						uris.addAll(Arrays.asList(redirectUris));
+					}
+				})
+				.scope(OidcUserDetailScopes.OPENID)
+				.scope(OidcUserDetailScopes.PROFILE)
+				.scope(OidcUserDetailScopes.EMAIL)
+				.scope(OidcUserDetailScopes.ADDRESS)
+				.scope(OidcUserDetailScopes.PHONE)
+				.scope(OidcUserDetailScopes.USERNAME)
+				.scope(OidcUserDetailScopes.ROLES)
+				.scope(OidcUserDetailScopes.UNION_ID)
+				.scope(OidcUserDetailScopes.TENANT_ID)
 				.scope("message.read")
 				.scope("message.write")
 				.tokenSettings(tokenSettings())
@@ -136,9 +150,9 @@ public class ApiRegisteredClient {
 		return TokenSettings.builder()
 			.accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
 			.reuseRefreshTokens(true)
-			.accessTokenTimeToLive(Duration.ofSeconds(oauth2Properties.getAccessTokenTimeToLive()))
-			.refreshTokenTimeToLive(Duration.ofSeconds(oauth2Properties.getRefreshTokenTimeToLive()))
-			.idTokenSignatureAlgorithm(SignatureAlgorithm.RS512)
+			.accessTokenTimeToLive(Duration.ofSeconds(3600))
+			.refreshTokenTimeToLive(Duration.ofSeconds(7200))
+			.idTokenSignatureAlgorithm(SignatureAlgorithm.RS256)
 			.build();
 	}
 

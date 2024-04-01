@@ -6,7 +6,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -54,7 +53,7 @@ public class OAuth2EndpointUtils {
 		throw new OAuth2AuthenticationException(error);
 	}
 
-	public static String transformAuthenticationException(AuthenticationException exception) {
+	public static String transformAuthenticationException(RuntimeException exception) {
 		String msg = "";
 		if (exception != null) {
 			if (exception instanceof UsernameNotFoundException || exception instanceof BadCredentialsException) {

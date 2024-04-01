@@ -1,6 +1,6 @@
 package io.github.panxiaochao.authorization.server.config;
 
-import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
+import io.github.panxiaochao.authorization.server.properties.AuthorizationProperties;
 import io.github.panxiaochao.security.core.constants.GlobalSecurityConstant;
 import io.github.panxiaochao.security.core.handler.ServerAccessDeniedHandler;
 import io.github.panxiaochao.security.core.handler.ServerLogoutSuccessHandler;
@@ -9,7 +9,6 @@ import io.github.panxiaochao.security.core.handler.form.ServerFormAuthentication
 import io.github.panxiaochao.security.core.handler.form.ServerFormAuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -35,7 +34,7 @@ import java.util.List;
 public class SecurityConfiguration {
 
 	@Resource
-	private Oauth2Properties oauth2Properties;
+	private AuthorizationProperties authorizationProperties;
 
 	/**
 	 * <p>
@@ -47,16 +46,16 @@ public class SecurityConfiguration {
 	 * </p>
 	 * @param httpSecurity httpSecurity
 	 */
-	@Bean
-	@Order(0)
-	public SecurityFilterChain resources(HttpSecurity httpSecurity) throws Exception {
-		httpSecurity.requestMatchers((matchers) -> matchers.antMatchers("/assets/**"))
-			.authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll());
-		// .requestCache(RequestCacheConfigurer::disable)
-		// .securityContext(AbstractHttpConfigurer::disable)
-		// .sessionManagement(AbstractHttpConfigurer::disable);
-		return httpSecurity.build();
-	}
+	// @Bean
+	// @Order(0)
+	// public SecurityFilterChain resources(HttpSecurity httpSecurity) throws Exception {
+	// httpSecurity.requestMatchers((matchers) -> matchers.antMatchers("/assets/**"))
+	// .authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll());
+	// // .requestCache(RequestCacheConfigurer::disable)
+	// // .securityContext(AbstractHttpConfigurer::disable)
+	// // .sessionManagement(AbstractHttpConfigurer::disable);
+	// return httpSecurity.build();
+	// }
 
 	/**
 	 * Security 默认安全策略
@@ -64,9 +63,8 @@ public class SecurityConfiguration {
 	 * @return SecurityFilterChain
 	 */
 	@Bean
-	@Order
 	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) {
-		List<String> whiteUrls = oauth2Properties.getWhiteUrls();
+		List<String> whiteUrls = authorizationProperties.getWhiteUrls();
 		// @formatter:off
 		try {
 			// 基础配置
@@ -84,7 +82,8 @@ public class SecurityConfiguration {
 			}
 
 			// 过滤请求
-			httpSecurity.formLogin(formLogin -> formLogin
+			httpSecurity
+					.formLogin(formLogin -> formLogin
 						.loginPage(GlobalSecurityConstant.LOGIN_PATH)
 						.failureHandler(new ServerFormAuthenticationFailureHandler())
 						.successHandler(new ServerFormAuthenticationSuccessHandler())

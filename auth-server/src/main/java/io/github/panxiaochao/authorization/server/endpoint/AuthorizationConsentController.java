@@ -1,7 +1,7 @@
 package io.github.panxiaochao.authorization.server.endpoint;
 
+import io.github.panxiaochao.authorization.server.core.oidc.OidcUserDetailScopes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
@@ -14,7 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -62,7 +66,7 @@ public class AuthorizationConsentController {
 			authorizedScopes = Collections.emptySet();
 		}
 		for (String requestedScope : StringUtils.delimitedListToStringArray(scope, " ")) {
-			// if (OidcScopes.OPENID.equals(requestedScope)) {
+			// if (OidcUserDetailScopes.OPENID.equals(requestedScope)) {
 			// continue;
 			// }
 			// 如果已授权范围包含了请求范围，则添加到以前批准的范围的 Set, 否则添加到要批准的范围
@@ -93,11 +97,15 @@ public class AuthorizationConsentController {
 
 		private static final Map<String, String> SCOPE_DESCRIPTIONS = new HashMap<>();
 		static {
-			SCOPE_DESCRIPTIONS.put(OidcScopes.PHONE, "此应用程序将能够读取您的手机号码信息");
-			SCOPE_DESCRIPTIONS.put(OidcScopes.PROFILE, "此应用程序将能够读取您的个人资料信息");
-			SCOPE_DESCRIPTIONS.put(OidcScopes.OPENID, "此应用程序将能够读取您的openid信息");
-			SCOPE_DESCRIPTIONS.put(OidcScopes.ADDRESS, "此应用程序将能够读取您的地址信息");
-			SCOPE_DESCRIPTIONS.put(OidcScopes.EMAIL, "此应用程序将能够读取您的邮箱信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.PHONE, "此应用程序将能够读取您的手机号码信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.PROFILE, "此应用程序将能够读取您的个人资料信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.OPENID, "此应用程序将能够读取您的openid信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.ADDRESS, "此应用程序将能够读取您的地址信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.EMAIL, "此应用程序将能够读取您的邮箱信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.USERNAME, "此应用程序将能够读取您的用户账号信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.ROLES, "此应用程序将能够读取您的用户角色信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.UNION_ID, "此应用程序将能够读取您的联合ID信息");
+			SCOPE_DESCRIPTIONS.put(OidcUserDetailScopes.TENANT_ID, "此应用程序将能够读取您的租户ID信息");
 			SCOPE_DESCRIPTIONS.put("message.read", "此应用程序将能够读取您的信息");
 			SCOPE_DESCRIPTIONS.put("message.write", "此应用程序将能够添加新信息, 它还可以编辑和删除现有信息");
 			SCOPE_DESCRIPTIONS.put("other.scope", "这是范围描述的另一个范围示例");

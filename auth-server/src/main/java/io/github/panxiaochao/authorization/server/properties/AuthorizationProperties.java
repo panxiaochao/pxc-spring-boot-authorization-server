@@ -1,6 +1,6 @@
 package io.github.panxiaochao.authorization.server.properties;
 
-import io.github.panxiaochao.authorization.server.core.crypto.PasswordEncoderEnum;
+import io.github.panxiaochao.security.core.password.PasswordEncoderEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,39 +19,14 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "auth.server", ignoreInvalidFields = true)
+@ConfigurationProperties(prefix = "authorization.server", ignoreInvalidFields = true)
 @Component
-public class Oauth2Properties {
-
-	/**
-	 * CLIENT_ID
-	 */
-	private String clientId;
-
-	/**
-	 * CLIENT_SECRET
-	 */
-	private String clientSecret;
-
-	/**
-	 * CLIENT_SERVER
-	 */
-	private String clientServer;
+public class AuthorizationProperties {
 
 	/**
 	 * passwordEncoder 密码加密模式
 	 */
 	private PasswordEncoderEnum passwordEncoder;
-
-	/**
-	 * accessTokenTimeToLive, default seconds
-	 */
-	private long accessTokenTimeToLive = 3600;
-
-	/**
-	 * refreshTokenTimeToLive, default seconds
-	 */
-	private long refreshTokenTimeToLive = 7200;
 
 	/**
 	 * seed

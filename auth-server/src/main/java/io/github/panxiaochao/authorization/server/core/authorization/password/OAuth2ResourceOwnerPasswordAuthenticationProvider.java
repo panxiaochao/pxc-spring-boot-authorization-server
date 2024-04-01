@@ -1,18 +1,22 @@
 package io.github.panxiaochao.authorization.server.core.authorization.password;
 
-import io.github.panxiaochao.authorization.server.core.service.UserDetailsServiceImpl;
-import io.github.panxiaochao.core.utils.SpringContextUtil;
 import io.github.panxiaochao.security.core.endpoint.OAuth2EndpointUtils;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.*;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClaimAccessor;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
+import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -28,10 +32,16 @@ import org.springframework.security.oauth2.server.authorization.context.Authoriz
 import org.springframework.security.oauth2.server.authorization.token.DefaultOAuth2TokenContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.security.Principal;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * <p>
@@ -51,6 +61,23 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 
 	private static final OAuth2TokenType ID_TOKEN_TOKEN_TYPE = new OAuth2TokenType(OidcParameterNames.ID_TOKEN);
 
+	private final OAuth2AuthorizationService authorizationService;
+
+	private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
+
+	private final AuthenticationManager authenticationManager;
+
+	public OAuth2ResourceOwnerPasswordAuthenticationProvider(AuthenticationManager authenticationManager,
+			OAuth2AuthorizationService authorizationService,
+			OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator) {
+		Assert.notNull(authorizationService, "authorizationService cannot be null");
+		Assert.notNull(tokenGenerator, "tokenGenerator cannot be null");
+		Assert.notNull(authenticationManager, "authenticationManager cannot be null");
+		this.authenticationManager = authenticationManager;
+		this.authorizationService = authorizationService;
+		this.tokenGenerator = tokenGenerator;
+	}
+
 	/**
 	 * @param authentication the authentication request object.
 	 * @return Authentication
@@ -59,8 +86,6 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		OAuth2ResourceOwnerPasswordAuthenticationToken resourceOwnerPasswordAuthenticationToken = (OAuth2ResourceOwnerPasswordAuthenticationToken) authentication;
-		Map<String, Object> requestAdditionalParameters = resourceOwnerPasswordAuthenticationToken
-			.getAdditionalParameters();
 		Set<String> requestedScopes = resourceOwnerPasswordAuthenticationToken.getScopes();
 		//
 		OAuth2ClientAuthenticationToken clientPrincipal = getAuthenticatedClientElseThrowInvalidClient(
@@ -72,8 +97,7 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 		else if (!registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.PASSWORD)) {
 			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.INVALID_GRANT, "The Invalid Grant.", null);
 		}
-		Authentication principal = authenticatePassword(requestAdditionalParameters, requestedScopes,
-				clientPrincipal.getDetails());
+		Authentication principal = authenticate(resourceOwnerPasswordAuthenticationToken);
 		Set<String> authorizedScopes = Collections.emptySet();
 		if (!CollectionUtils.isEmpty(requestedScopes)) {
 			for (String requestedScope : requestedScopes) {
@@ -118,7 +142,7 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 		}
 		// OAuth2Authorization
 		authorization = authorizationBuilder.build();
-		authorizationService().save(authorization);
+		authorizationService.save(authorization);
 		LOGGER.info("Saved authorization");
 		return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal, accessToken,
 				oauth2RefreshToken, additionalParameters);
@@ -127,7 +151,7 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 	private OAuth2AccessToken generateAccessToken(DefaultOAuth2TokenContext.Builder tokenContextBuilder,
 			OAuth2Authorization.Builder authorizationBuilder) {
 		OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.ACCESS_TOKEN).build();
-		OAuth2Token generatedAccessToken = tokenGenerator().generate(tokenContext);
+		OAuth2Token generatedAccessToken = tokenGenerator.generate(tokenContext);
 		if (generatedAccessToken == null) {
 			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR,
 					"The token generator failed to generate the access token.", ERROR_URI);
@@ -153,7 +177,7 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 		if (registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN)
 				&& !clientPrincipal.getClientAuthenticationMethod().equals(ClientAuthenticationMethod.NONE)) {
 			OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
-			OAuth2Token generatedRefreshToken = tokenGenerator().generate(tokenContext);
+			OAuth2Token generatedRefreshToken = tokenGenerator.generate(tokenContext);
 			if (!(generatedRefreshToken instanceof OAuth2RefreshToken)) {
 				OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR,
 						"The token generator failed to generate the refresh token.", ERROR_URI);
@@ -164,42 +188,26 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 		return oauth2RefreshToken;
 	}
 
-	private Authentication authenticatePassword(Map<String, Object> requestAdditionalParameters,
-			Set<String> requestedScopes, Object details) {
+	private Authentication authenticate(
+			OAuth2ResourceOwnerPasswordAuthenticationToken resourceOwnerPasswordAuthenticationToken) {
+		Map<String, Object> requestAdditionalParameters = resourceOwnerPasswordAuthenticationToken
+			.getAdditionalParameters();
 		String username = requestAdditionalParameters.get(OAuth2ParameterNames.USERNAME).toString();
 		String password = requestAdditionalParameters.get(OAuth2ParameterNames.PASSWORD).toString();
-		// requestAdditionalParameters.get(CusOAuth2ParameterNames.IDENTITY_TYPE).toString();
-		UserDetails userDetails = userDetailsService().loadUserByUsername(username);
-		// if (userDetails == null) {
-		// OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR, "Bad Credentials:
-		// user is empty.", null);
-		// }
-		boolean verified = false;
-		try {
-			verified = passwordEncoder().matches(password, userDetails.getPassword());
-		}
-		catch (Exception e) {
-			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR,
-					"password match is error: [" + e.getMessage() + "]", null);
-		}
-		if (!verified) {
-			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR, "password does not match", null);
-		}
-		OAuth2ResourceOwnerPasswordAuthenticationToken resourceOwnerPasswordAuthenticationToken = new OAuth2ResourceOwnerPasswordAuthenticationToken(
-				userDetails.getAuthorities(), AuthorizationGrantType.PASSWORD, userDetails, requestedScopes,
-				requestAdditionalParameters);
-		resourceOwnerPasswordAuthenticationToken.setDetails(details);
-		return resourceOwnerPasswordAuthenticationToken;
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+				username, password);
+		return authenticationManager.authenticate(usernamePasswordAuthenticationToken);
 	}
 
 	private OidcIdToken generateOidcIdToken(DefaultOAuth2TokenContext.Builder tokenContextBuilder,
 			OAuth2Authorization.Builder authorizationBuilder) {
-		OAuth2TokenContext tokenContext = tokenContextBuilder.tokenType(ID_TOKEN_TOKEN_TYPE)
-			// ID token customizer may need access to the access token and/or refresh
-			// token
-			.authorization(authorizationBuilder.build())
-			.build();
-		OAuth2Token generatedIdToken = tokenGenerator().generate(tokenContext);
+		// @formatter:off
+		OAuth2TokenContext tokenContext = tokenContextBuilder
+				.tokenType(ID_TOKEN_TOKEN_TYPE)
+				.authorization(authorizationBuilder.build())
+				.build();
+		// @formatter:on
+		OAuth2Token generatedIdToken = tokenGenerator.generate(tokenContext);
 		if (!(generatedIdToken instanceof Jwt)) {
 			OAuth2EndpointUtils.throwError(OAuth2ErrorCodes.SERVER_ERROR,
 					"The token generator failed to generate the ID token.", ERROR_URI);
@@ -226,21 +234,22 @@ public final class OAuth2ResourceOwnerPasswordAuthenticationProvider implements 
 		throw new OAuth2AuthenticationException(OAuth2ErrorCodes.INVALID_CLIENT);
 	}
 
-	private UserDetailsService userDetailsService() {
-		return SpringContextUtil.getBean(UserDetailsServiceImpl.class);
-	}
+	// private UserDetailsService userDetailsService() {
+	// return SpringContextUtil.getBean(UserDetailsServiceImpl.class);
+	// }
 
-	private PasswordEncoder passwordEncoder() {
-		return SpringContextUtil.getBean(PasswordEncoder.class);
-	}
+	// private PasswordEncoder passwordEncoder() {
+	// return SpringContextUtil.getBean(PasswordEncoder.class);
+	// }
 
-	private OAuth2AuthorizationService authorizationService() {
-		return SpringContextUtil.getBean(OAuth2AuthorizationService.class);
-	}
+	// private OAuth2AuthorizationService authorizationService() {
+	// return SpringContextUtil.getBean(OAuth2AuthorizationService.class);
+	// }
 
-	private OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator() {
-		return (OAuth2TokenGenerator<? extends OAuth2Token>) SpringContextUtil.getBean(OAuth2TokenGenerator.class);
-	}
+	// private OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator() {
+	// return (OAuth2TokenGenerator<? extends OAuth2Token>)
+	// SpringContextUtil.getBean(OAuth2TokenGenerator.class);
+	// }
 
 	@Override
 	public boolean supports(Class<?> authentication) {

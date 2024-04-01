@@ -1,4 +1,4 @@
-package io.github.panxiaochao.authorization.server.core.crypto;
+package io.github.panxiaochao.security.core.password;
 
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

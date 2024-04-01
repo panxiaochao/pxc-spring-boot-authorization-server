@@ -1,11 +1,11 @@
-package io.github.panxiaochao.authorization.server.core.crypto;
+package io.github.panxiaochao.security.core.password;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
  * <p>
- * 加密枚举类
+ * 密码加密匹配 枚举类
  * </p>
  *
  * @author Lypxc

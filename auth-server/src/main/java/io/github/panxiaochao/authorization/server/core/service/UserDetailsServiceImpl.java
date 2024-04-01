@@ -3,7 +3,7 @@ package io.github.panxiaochao.authorization.server.core.service;
 import io.github.panxiaochao.authorization.infrastucture.user.entity.SysUser;
 import io.github.panxiaochao.authorization.infrastucture.user.entity.SysUserAuths;
 import io.github.panxiaochao.authorization.infrastucture.user.service.ISysUserService;
-import io.github.panxiaochao.authorization.server.properties.Oauth2Properties;
+import io.github.panxiaochao.authorization.server.properties.AuthorizationProperties;
 import io.github.panxiaochao.security.core.endpoint.OAuth2EndpointUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,7 +38,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public PasswordEncoder passwordEncoder;
 
 	@Resource
-	private Oauth2Properties oauth2Properties;
+	private AuthorizationProperties authorizationProperties;
 
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$");
 
@@ -79,7 +79,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	protected UserDetails createUserDetails(String username, String password,
 			Collection<? extends GrantedAuthority> authorities) {
 		// 是否是明文
-		if (oauth2Properties.isPlainPassword()) {
+		if (authorizationProperties.isPlainPassword()) {
 			// 明文的情况下，需要加密置入
 			password = passwordEncoder.encode(password);
 		}

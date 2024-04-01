@@ -17,7 +17,6 @@
         <dependency>
             <groupId>io.github.panxiaochao</groupId>
             <artifactId>pxc-framework-web</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -28,13 +27,11 @@
                     <groupId>com.nimbusds</groupId>
                 </exclusion>
             </exclusions>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>${nimbus-jose-jwt.version}</version>
-            <optional>true</optional>
         </dependency>
     </dependencies>
 

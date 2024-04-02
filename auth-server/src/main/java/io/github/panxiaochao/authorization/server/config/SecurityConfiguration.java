@@ -97,8 +97,12 @@ public class SecurityConfiguration {
 							exception -> exception
 									.accessDeniedHandler(new ServerAccessDeniedHandler())
 									.authenticationEntryPoint(new ServerFormAuthenticationEntryPoint())
-					)
-					.csrf().and().headers().frameOptions().sameOrigin();
+					);
+			// fix: Could not verify the provided CSRF token because no token was found to compare
+			// solve: csrf().disable()
+			httpSecurity
+					.csrf().disable()
+					.headers().frameOptions().sameOrigin();
 
 			return httpSecurity.build();
 		}
